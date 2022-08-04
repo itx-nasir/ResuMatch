@@ -1,0 +1,21 @@
+{
+  "title": "Senior Full Stack Developer",
+  "description": "We are seeking a highly skilled Senior Full Stack Developer to join our dynamic team. The ideal candidate will have extensive experience in both frontend and backend development, with a strong focus on modern web technologies and best practices. You will be responsible for designing, developing, and maintaining scalable web applications while collaborating with cross-functional teams to deliver high-quality software solutions.",
+  "requirements": [
+    "React",
+    "Node.js", 
+    "TypeScript",
+    "PostgreSQL",
+    "MongoDB",
+    "AWS",
+    "Docker",
+    "Kubernetes",
+    "Git",
+    "REST APIs",
+    "GraphQL",
+    "Microservices",
+    "Agile Development",
+    "Test-Driven Development",
+    "CI/CD"
+  ]
+} 
