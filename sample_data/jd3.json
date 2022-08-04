@@ -1,0 +1,21 @@
+{
+  "title": "DevOps Engineer",
+  "description": "We are looking for a skilled DevOps Engineer to automate and streamline our development and deployment processes. You will be instrumental in setting up CI/CD pipelines, managing cloud infrastructure, and ensuring system reliability and performance across environments.",
+  "requirements": [
+    "AWS",
+    "Docker",
+    "Kubernetes",
+    "Terraform",
+    "Jenkins",
+    "GitLab CI/CD",
+    "Linux",
+    "Monitoring Tools",
+    "Prometheus",
+    "Grafana",
+    "Shell Scripting",
+    "Python",
+    "Infrastructure as Code",
+    "System Security",
+    "Agile & DevOps Practices"
+  ]
+}
