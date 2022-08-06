@@ -1,0 +1,84 @@
+ DAVID LEE
+Senior Backend Developer
+Email: david.lee@email.com | Phone: (555) 987-6543
+LinkedIn: linkedin.com/in/davidlee | GitHub: github.com/davidlee
+
+PROFESSIONAL SUMMARY
+Results-driven Backend Developer with over 7 years of experience in designing and implementing scalable backend systems. Specializes in Python, Django, and microservice architecture with deep knowledge of cloud infrastructure and API development. Committed to building secure and high-performing systems.
+
+TECHNICAL SKILLS
+Programming & Backend:
+
+Python, Django, FastAPI, Flask
+
+PostgreSQL, MySQL, MongoDB, Redis
+
+RESTful APIs, GraphQL, Celery, RabbitMQ
+
+Microservices, System Architecture
+
+DevOps & Cloud:
+
+AWS (EC2, RDS, S3, Lambda), Azure
+
+Docker, Kubernetes, Terraform
+
+GitHub Actions, Jenkins, GitLab CI/CD
+
+Linux, Bash Scripting
+
+PROFESSIONAL EXPERIENCE
+Senior Backend Developer | CloudNova Inc. | 2021 – Present
+
+Developed secure and scalable backend services using Django and FastAPI
+
+Designed database models and optimized SQL queries for high-load applications
+
+Built CI/CD pipelines with GitHub Actions, reducing deployment time by 50%
+
+Mentored junior engineers and introduced best practices for testing and logging
+
+Backend Developer | Appify Systems | 2018 – 2021
+
+Developed backend APIs supporting mobile and web platforms
+
+Integrated third-party services including Stripe, Firebase, and Twilio
+
+Implemented role-based authentication and caching with Redis
+
+Participated in scrum ceremonies and sprint planning
+
+Junior Developer | DevNet Labs | 2016 – 2018
+
+Maintained legacy code and gradually migrated monolithic code to microservices
+
+Contributed to REST API design and test coverage improvements
+
+Assisted with database migration from MySQL to PostgreSQL
+
+EDUCATION
+B.S. in Computer Science
+University of California, Davis | 2012 – 2016
+
+PROJECTS
+API Monitoring Tool (2022)
+
+Created a self-hosted tool using FastAPI and Grafana to monitor REST API uptime and latency
+
+Deployed with Docker on AWS EC2
+
+Team Chat Platform (2020)
+
+Built a real-time chat backend using WebSocket and Redis
+
+Integrated user presence detection and message queuing with Celery
+
+CERTIFICATIONS
+AWS Certified Solutions Architect – Associate (2022)
+
+Certified Django Developer (2021)
+
+ACHIEVEMENTS
+Speaker at PyCon Europe 2022
+
+Maintainer of popular Django REST framework plugin with 3,000+ stars on GitHub
