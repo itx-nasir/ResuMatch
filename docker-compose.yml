@@ -1,0 +1,48 @@
+
+services:
+  resumatch:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DATABASE_URL=sqlite:///./data/resumatch.db
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
+    volumes:
+      - resumatch_data:/app/data
+      - resumatch_uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development services (optional)
+  resumatch-dev:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DATABASE_URL=sqlite:///./data/resumatch_dev.db
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001
+    volumes:
+      - resumatch_dev_data:/app/data
+      - resumatch_dev_uploads:/app/uploads
+      - ./backend:/app/backend  # Mount for development
+    restart: unless-stopped
+    command: /bin/bash -c "cd /app && python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload"
+    profiles:
+      - dev
+
+volumes:
+  resumatch_data:
+    driver: local
+  resumatch_uploads:
+    driver: local
+  resumatch_dev_data:
+    driver: local
+  resumatch_dev_uploads:
+    driver: local 
