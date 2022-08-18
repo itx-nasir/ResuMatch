@@ -1,0 +1,21 @@
+{
+  "title": "Cloud Solutions Architect",
+  "description": "We are hiring a Cloud Solutions Architect to lead the design and implementation of scalable and secure cloud architectures. You will collaborate with development and operations teams to ensure that solutions meet business goals and follow best practices in cloud computing.",
+  "requirements": [
+    "AWS",
+    "Azure",
+    "GCP",
+    "Terraform",
+    "CloudFormation",
+    "Kubernetes",
+    "Docker",
+    "Serverless",
+    "Networking",
+    "Security Best Practices",
+    "Load Balancing",
+    "CI/CD",
+    "Linux",
+    "Monitoring & Logging",
+    "Cost Optimization"
+  ]
+}
