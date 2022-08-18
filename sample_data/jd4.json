@@ -1,0 +1,21 @@
+{
+  "title": "Machine Learning Engineer",
+  "description": "We are seeking a Machine Learning Engineer to design, develop, and deploy ML models for real-world applications. You will work on end-to-end machine learning pipelines, from data collection and preprocessing to model training and deployment in production.",
+  "requirements": [
+    "Python",
+    "TensorFlow",
+    "PyTorch",
+    "Scikit-learn",
+    "Pandas",
+    "NumPy",
+    "SQL",
+    "MLflow",
+    "Docker",
+    "AWS",
+    "Data Engineering",
+    "Feature Engineering",
+    "Model Evaluation",
+    "REST APIs",
+    "CI/CD for ML"
+  ]
+}
