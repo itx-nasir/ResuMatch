@@ -6,7 +6,8 @@ import {
   FileText, 
   Award,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  AlertTriangle
 } from 'lucide-react';
 
 const AnalysisResults = ({ results }) => {
@@ -22,13 +23,15 @@ const AnalysisResults = ({ results }) => {
     setExpandedResults(newExpanded);
   };
 
-  const getScoreColor = (score) => {
+  const getScoreColor = (score, hasError) => {
+    if (hasError) return 'score-error';
     if (score >= 70) return 'score-high';
     if (score >= 50) return 'score-medium';
     return 'score-low';
   };
 
-  const getScoreGrade = (score) => {
+  const getScoreGrade = (score, hasError) => {
+    if (hasError) return 'Error';
     if (score >= 90) return 'Excellent';
     if (score >= 80) return 'Very Good';
     if (score >= 70) return 'Good';
@@ -45,8 +48,16 @@ const AnalysisResults = ({ results }) => {
     return null;
   }
 
-  // Sort results by score (highest first)
-  const sortedResults = [...results].sort((a, b) => b.overall_score - a.overall_score);
+  // Sort results by score (highest first) and errors last
+  const sortedResults = [...results].sort((a, b) => {
+    if (a.error && !b.error) return 1;
+    if (!a.error && b.error) return -1;
+    return b.overall_score - a.overall_score;
+  });
+
+  // Count successful and failed analyses
+  const successfulAnalyses = results.filter(r => !r.error).length;
+  const failedAnalyses = results.filter(r => r.error).length;
 
   return (
     <div className="card">
@@ -79,24 +90,35 @@ const AnalysisResults = ({ results }) => {
         
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#10b981' }}>
-            {Math.round(sortedResults.reduce((sum, r) => sum + r.overall_score, 0) / sortedResults.length)}
+            {successfulAnalyses}
           </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Avg Score</div>
+          <div style={{ fontSize: '12px', color: '#6b7280' }}>Successful</div>
         </div>
         
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#f59e0b' }}>
-            {sortedResults.filter(r => r.overall_score >= 70).length}
+        {failedAnalyses > 0 && (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#ef4444' }}>
+              {failedAnalyses}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280' }}>Failed</div>
           </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Strong Matches</div>
-        </div>
+        )}
+        
+        {successfulAnalyses > 0 && (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#f59e0b' }}>
+              {Math.round(results.filter(r => !r.error).reduce((sum, r) => sum + r.overall_score, 0) / successfulAnalyses)}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280' }}>Avg Score</div>
+          </div>
+        )}
       </div>
 
       {/* Results List */}
       <div style={{ display: 'grid', gap: '16px' }}>
         {sortedResults.map((result, index) => (
           <div
-            key={result.id}
+            key={result.id || result.cv_id}
             style={{
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
@@ -108,57 +130,57 @@ const AnalysisResults = ({ results }) => {
             <div
               style={{
                 padding: '16px',
-                backgroundColor: index === 0 ? '#f0f9ff' : 'white',
+                backgroundColor: result.error ? '#fef2f2' : index === 0 ? '#f0f9ff' : 'white',
                 borderBottom: '1px solid #e5e7eb',
                 cursor: 'pointer',
               }}
-              onClick={() => toggleExpanded(result.id)}
+              onClick={() => toggleExpanded(result.id || result.cv_id)}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                    {index === 0 && (
-                      <Award size={20} color="#f59e0b" />
-                    )}
-                    <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>
-                      {result.cv_filename}
-                    </h3>
-                    <span className={`${getScoreColor(result.overall_score)}`} style={{ fontSize: '18px', fontWeight: '700' }}>
-                      {Math.round(result.overall_score)}%
-                    </span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span className={`tag ${getScoreColor(result.overall_score) === 'score-high' ? 'tag-success' : getScoreColor(result.overall_score) === 'score-medium' ? 'tag-warning' : 'tag-primary'}`}>
-                      {getScoreGrade(result.overall_score)}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                      Analyzed {formatDate(result.created_at)}
-                    </span>
-                  </div>
-                  
-                  <p style={{ 
-                    color: '#6b7280', 
-                    margin: 0, 
-                    fontSize: '14px',
-                    lineHeight: '1.5'
-                  }}>
-                    {result.summary}
-                  </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  {result.error ? (
+                    <AlertTriangle size={20} color="#ef4444" />
+                  ) : index === 0 ? (
+                    <Award size={20} color="#f59e0b" />
+                  ) : null}
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>
+                    {result.cv_filename}
+                  </h3>
+                  <span className={`${getScoreColor(result.overall_score, result.error)}`} style={{ fontSize: '18px', fontWeight: '700' }}>
+                    {result.error ? 'Error' : `${Math.round(result.overall_score)}%`}
+                  </span>
                 </div>
                 
-                <div style={{ marginLeft: '16px' }}>
-                  {expandedResults.has(result.id) ? (
-                    <ChevronUp size={20} color="#6b7280" />
-                  ) : (
-                    <ChevronDown size={20} color="#6b7280" />
-                  )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span className={`tag ${result.error ? 'tag-error' : getScoreColor(result.overall_score) === 'score-high' ? 'tag-success' : getScoreColor(result.overall_score) === 'score-medium' ? 'tag-warning' : 'tag-primary'}`}>
+                    {getScoreGrade(result.overall_score, result.error)}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                    Analyzed {formatDate(result.created_at)}
+                  </span>
                 </div>
+                
+                <p style={{ 
+                  color: result.error ? '#ef4444' : '#6b7280', 
+                  margin: 0, 
+                  fontSize: '14px',
+                  lineHeight: '1.5'
+                }}>
+                  {result.summary}
+                </p>
+              </div>
+              
+              <div style={{ marginLeft: '16px' }}>
+                {expandedResults.has(result.id || result.cv_id) ? (
+                  <ChevronUp size={20} color="#6b7280" />
+                ) : (
+                  <ChevronDown size={20} color="#6b7280" />
+                )}
               </div>
             </div>
 
             {/* Expanded Details */}
-            {expandedResults.has(result.id) && (
+            {expandedResults.has(result.id || result.cv_id) && !result.error && (
               <div style={{ padding: '16px' }}>
                 <div style={{ display: 'grid', gap: '16px' }}>
                   {/* Matching Skills */}
@@ -210,31 +232,29 @@ const AnalysisResults = ({ results }) => {
                   )}
 
                   {/* Detailed Analysis */}
-                  {result.detailed_analysis && (
-                    <div>
-                      <h4 style={{ 
-                        fontSize: '14px', 
-                        fontWeight: '600', 
-                        marginBottom: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}>
-                        <FileText size={16} color="#6b7280" />
-                        Detailed Analysis
-                      </h4>
-                      <div style={{
-                        backgroundColor: '#f9fafb',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        lineHeight: '1.6',
-                        color: '#374151'
-                      }}>
-                        {result.detailed_analysis}
-                      </div>
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <FileText size={16} color="#6b7280" />
+                      Detailed Analysis
+                    </h4>
+                    <div style={{
+                      backgroundColor: '#f9fafb',
+                      padding: '12px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      lineHeight: '1.6',
+                      color: '#374151'
+                    }}>
+                      {result.detailed_analysis}
                     </div>
-                  )}
+                  </div>
 
                   {/* Skills Progress Bar */}
                   <div>
