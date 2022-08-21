@@ -1,7 +1,6 @@
 import google.generativeai as genai
 import json
 import re
-import random
 from typing import Dict, List, Optional
 import os
 from dotenv import load_dotenv
@@ -11,7 +10,7 @@ load_dotenv()
 class AIAnalyzer:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model_name = "gemini-pro"
+        self.model_name = "models/gemini-1.5-flash"
         self.is_configured = self._configure_gemini()
     
     def _configure_gemini(self) -> bool:
@@ -62,11 +61,18 @@ class AIAnalyzer:
             missing_match = re.search(r'MISSING_SKILLS:\s*(.+?)(?=DETAILED_ANALYSIS:|$)', response_text, re.DOTALL)
             detailed_match = re.search(r'DETAILED_ANALYSIS:\s*(.+?)$', response_text, re.DOTALL)
             
+            if not all([score_match, summary_match, matching_match, missing_match, detailed_match]):
+                raise ValueError("Incomplete or malformed response from Gemini")
+            
             # Parse score
-            overall_score = float(score_match.group(1)) if score_match else 0.0
+            overall_score = float(score_match.group(1))
+            if not 0 <= overall_score <= 100:
+                raise ValueError("Score must be between 0 and 100")
             
             # Parse summary
-            summary = summary_match.group(1).strip() if summary_match else "Analysis not available"
+            summary = summary_match.group(1).strip()
+            if not summary:
+                raise ValueError("Summary cannot be empty")
             
             # Parse skills lists
             matching_skills = []
@@ -80,7 +86,9 @@ class AIAnalyzer:
                 missing_skills = [skill.strip() for skill in missing_text.split(',') if skill.strip()]
             
             # Parse detailed analysis
-            detailed_analysis = detailed_match.group(1).strip() if detailed_match else "Detailed analysis not available"
+            detailed_analysis = detailed_match.group(1).strip()
+            if not detailed_analysis:
+                raise ValueError("Detailed analysis cannot be empty")
             
             return {
                 "overall_score": overall_score,
@@ -91,47 +99,17 @@ class AIAnalyzer:
             }
         
         except Exception as e:
-            print(f"Error parsing Gemini response: {e}")
-            return self._generate_mock_analysis()
-    
-    def _generate_mock_analysis(self) -> Dict:
-        """Generate realistic mock analysis when Gemini is not available"""
-        mock_analyses = [
-            {
-                "overall_score": random.randint(65, 85),
-                "summary": "Strong candidate with relevant technical experience and good educational background. Shows potential for growth in the required areas.",
-                "matching_skills": ["Python", "JavaScript", "SQL", "Git", "Agile Development"],
-                "missing_skills": ["Docker", "Kubernetes", "AWS"],
-                "detailed_analysis": "The candidate demonstrates solid technical foundations with strong programming skills in Python and JavaScript. Their experience with database management and version control systems aligns well with our requirements. However, they would benefit from additional training in containerization and cloud technologies to fully meet all job requirements."
-            },
-            {
-                "overall_score": random.randint(45, 65),
-                "summary": "Candidate has some relevant experience but lacks several key technical skills required for this position.",
-                "matching_skills": ["Communication", "Team Collaboration", "Problem Solving"],
-                "missing_skills": ["React", "Node.js", "Database Design", "API Development"],
-                "detailed_analysis": "While the candidate shows good soft skills and general problem-solving abilities, there are significant gaps in the technical requirements. They would need substantial training and development to meet the role's technical demands. Consider for junior positions or with extended onboarding period."
-            },
-            {
-                "overall_score": random.randint(85, 95),
-                "summary": "Excellent candidate with comprehensive skills matching most job requirements. Strong technical background and proven track record.",
-                "matching_skills": ["Full Stack Development", "React", "Node.js", "Database Management", "Cloud Technologies", "DevOps"],
-                "missing_skills": ["Specific Domain Knowledge"],
-                "detailed_analysis": "This is a highly qualified candidate who meets or exceeds most of our technical requirements. Their extensive experience in full-stack development, combined with strong cloud and DevOps skills, makes them an ideal fit. The only gap is domain-specific knowledge, which can be addressed through orientation and training."
-            }
-        ]
-        
-        return random.choice(mock_analyses)
+            raise ValueError(f"Failed to parse Gemini response: {str(e)}")
     
     async def analyze_cv(self, job_description: str, job_requirements: List[str], cv_content: str) -> Dict:
-        """Analyze CV against job description using Gemini AI or mock data"""
+        """Analyze CV against job description using Gemini AI"""
         
         if not self.is_configured:
-            print("Gemini API not configured, using mock analysis")
-            return self._generate_mock_analysis()
+            raise RuntimeError("Gemini API is not configured. Please provide a valid API key.")
         
         try:
-            # Create model instance
-            model = genai.GenerativeModel(self.model_name)
+            # Create model instance with full model name
+            model = genai.GenerativeModel('models/gemini-1.5-flash')
             
             # Generate prompt
             prompt = self._create_analysis_prompt(job_description, job_requirements, cv_content)
@@ -139,25 +117,52 @@ class AIAnalyzer:
             # Get response from Gemini
             response = model.generate_content(prompt)
             
-            if response and response.text:
-                return self._parse_gemini_response(response.text)
-            else:
-                print("Empty response from Gemini, using mock analysis")
-                return self._generate_mock_analysis()
+            if not response or not response.text:
+                raise RuntimeError("Empty response received from Gemini API")
+            
+            return self._parse_gemini_response(response.text)
                 
         except Exception as e:
-            print(f"Error calling Gemini API: {e}")
-            return self._generate_mock_analysis()
+            if "quota exceeded" in str(e).lower():
+                raise RuntimeError("Gemini API quota exceeded. Please try again later.")
+            elif "rate limit" in str(e).lower():
+                raise RuntimeError("Gemini API rate limit reached. Please try again in a few minutes.")
+            elif "invalid api key" in str(e).lower():
+                raise RuntimeError("Invalid Gemini API key. Please check your configuration.")
+            elif "not found" in str(e).lower() or "not supported" in str(e).lower():
+                raise RuntimeError(f"Model {self.model_name} is not available. Please check your model configuration.")
+            else:
+                raise RuntimeError(f"Error calling Gemini API: {str(e)}")
     
     async def analyze_multiple_cvs(self, job_description: str, job_requirements: List[str], cv_data: List[Dict]) -> List[Dict]:
         """Analyze multiple CVs against a job description"""
         results = []
+        errors = []
         
         for cv in cv_data:
-            analysis = await self.analyze_cv(job_description, job_requirements, cv['content'])
-            analysis['cv_id'] = cv['id']
-            analysis['cv_filename'] = cv['filename']
-            results.append(analysis)
+            try:
+                analysis = await self.analyze_cv(job_description, job_requirements, cv['content'])
+                analysis['cv_id'] = cv['id']
+                analysis['cv_filename'] = cv['filename']
+                analysis['error'] = None
+                results.append(analysis)
+            except Exception as e:
+                error_result = {
+                    'cv_id': cv['id'],
+                    'cv_filename': cv['filename'],
+                    'error': str(e),
+                    'overall_score': 0,
+                    'summary': f"Error analyzing CV: {str(e)}",
+                    'matching_skills': [],
+                    'missing_skills': [],
+                    'detailed_analysis': "Analysis failed due to an error with the AI service."
+                }
+                results.append(error_result)
+                errors.append(str(e))
+        
+        if len(errors) == len(cv_data):
+            # If all CVs failed, raise an error
+            raise RuntimeError(f"Failed to analyze all CVs. First error: {errors[0]}")
         
         # Sort by score (highest first)
         results.sort(key=lambda x: x['overall_score'], reverse=True)
