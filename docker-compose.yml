@@ -1,7 +1,8 @@
-
 services:
   resumatch:
-    build: .
+    build: 
+      context: .
+      target: backend
     ports:
       - "8000:8000"
     environment:
@@ -19,9 +20,26 @@ services:
       retries: 3
       start_period: 40s
 
-  # Development services (optional)
-  resumatch-dev:
-    build: .
+  # Development services
+  frontend-dev:
+    build: 
+      context: .
+      target: frontend-build
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8001
+    command: npm start
+    profiles:
+      - dev
+
+  backend-dev:
+    build: 
+      context: .
+      target: backend
     ports:
       - "8001:8000"
     environment:
@@ -29,9 +47,9 @@ services:
       - DATABASE_URL=sqlite:///./data/resumatch_dev.db
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001
     volumes:
+      - ./backend:/app/backend
       - resumatch_dev_data:/app/data
       - resumatch_dev_uploads:/app/uploads
-      - ./backend:/app/backend  # Mount for development
     restart: unless-stopped
     command: /bin/bash -c "cd /app && python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload"
     profiles:
