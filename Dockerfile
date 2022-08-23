@@ -6,15 +6,18 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-RUN npm run build
+
+# For production, build the frontend
+RUN if [ "$NODE_ENV" != "development" ]; then npm run build; fi
 
 # Stage 2: Setup Python backend
 FROM python:3.11-slim AS backend
 
-# Install system dependencies for PDF processing
+# Install system dependencies for PDF processing and curl for healthcheck
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -26,11 +29,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend application
 COPY backend/ ./backend/
 
-# Copy built frontend from previous stage
+# Copy built frontend from previous stage (only for production)
 COPY --from=frontend-build /app/frontend/build ./frontend/build
 
-# Create uploads directory and set permissions
-RUN mkdir -p /app/uploads && chmod 755 /app/uploads
+# Create uploads and data directories
+RUN mkdir -p /app/uploads /app/data && chmod 755 /app/uploads /app/data
 
 # Expose port
 EXPOSE 8000
