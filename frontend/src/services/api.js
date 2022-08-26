@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://resumatch.onrender.com/api'
+  : process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,12 +13,12 @@ const api = axios.create({
 
 // Job Description API calls
 export const fetchJobs = async () => {
-  const response = await api.get('/api/jobs');
+  const response = await api.get('/jobs');
   return response.data;
 };
 
 export const createJob = async (jobData) => {
-  const response = await api.post('/api/jobs', jobData);
+  const response = await api.post('/jobs', jobData);
   return response.data;
 };
 
@@ -24,7 +26,7 @@ export const uploadJobJSON = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await api.post('/api/jobs/upload-json', formData, {
+  const response = await api.post('/jobs/upload-json', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -34,7 +36,7 @@ export const uploadJobJSON = async (file) => {
 
 // CV File API calls
 export const fetchCVs = async () => {
-  const response = await api.get('/api/cvs');
+  const response = await api.get('/cvs');
   return response.data;
 };
 
@@ -44,7 +46,7 @@ export const uploadCVs = async (files) => {
     formData.append('files', file);
   });
   
-  const response = await api.post('/api/cvs/upload', formData, {
+  const response = await api.post('/cvs/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -54,7 +56,7 @@ export const uploadCVs = async (files) => {
 
 // Analysis API calls
 export const analyzeCVs = async (jobId, cvIds) => {
-  const response = await api.post('/api/analyze', {
+  const response = await api.post('/analyze', {
     job_id: jobId,
     cv_ids: cvIds,
   });
@@ -62,13 +64,13 @@ export const analyzeCVs = async (jobId, cvIds) => {
 };
 
 export const getJobAnalyses = async (jobId) => {
-  const response = await api.get(`/api/analyses/${jobId}`);
+  const response = await api.get(`/analyses/${jobId}`);
   return response.data;
 };
 
 // Test API call
 export const runSystemTest = async () => {
-  const response = await api.get('/api/test');
+  const response = await api.get('/test');
   return response.data;
 };
 
