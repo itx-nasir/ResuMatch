@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: resumatch
+    env: docker
+    region: ohio
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite:///./data/resumatch.db
+      - key: ALLOWED_ORIGINS
+        value: https://resumatch.onrender.com
+    disk:
+      name: data
+      mountPath: /app/data
+      sizeGB: 1
+    healthCheckPath: /
+    numInstances: 1
+    buildFilter:
+      paths:
+        - backend/**
+        - frontend/**
+        - requirements.txt
+        - Dockerfile
+        - docker-compose.yml 
