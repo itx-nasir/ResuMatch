@@ -260,97 +260,177 @@ async def get_job_analyses(job_id: int, db: Session = Depends(get_db)):
 async def test_system(db: Session = Depends(get_db)):
     """Comprehensive system test endpoint"""
     
+    test_results = {
+        "status": "unknown",
+        "database_test": {"status": "unknown"},
+        "sample_job_created": {"status": "unknown"},
+        "sample_cv_created": {"status": "unknown"},
+        "analysis_test": {"status": "unknown"},
+        "message": "Starting system tests..."
+    }
+    
     try:
-        # Test database connection
-        db_test = {"status": "success", "message": "Database connection successful"}
+        # Test 1: Database connection
+        try:
+            # Simple query to test database
+            job_count = db.query(JobDescription).count()
+            test_results["database_test"] = {
+                "status": "success", 
+                "message": f"Database connection successful. Found {job_count} job descriptions."
+            }
+        except Exception as db_error:
+            test_results["database_test"] = {
+                "status": "error", 
+                "message": f"Database connection failed: {str(db_error)}"
+            }
+            raise Exception(f"Database test failed: {str(db_error)}")
         
-        # Create sample job description
-        sample_job = JobDescription(
-            title="Test Senior Full Stack Developer",
-            description="We are looking for a senior full stack developer with expertise in modern web technologies.",
-            requirements=["React", "Node.js", "Python", "PostgreSQL", "AWS", "Docker"]
-        )
-        
-        # Check if job already exists
-        existing_job = db.query(JobDescription).filter(JobDescription.title == sample_job.title).first()
-        if existing_job:
-            db.delete(existing_job)
+        # Test 2: Create sample job description
+        try:
+            sample_job_title = "Test Senior Full Stack Developer"
+            
+            # Remove existing test job if it exists
+            existing_job = db.query(JobDescription).filter(JobDescription.title == sample_job_title).first()
+            if existing_job:
+                db.delete(existing_job)
+                db.commit()
+            
+            sample_job = JobDescription(
+                title=sample_job_title,
+                description="We are looking for a senior full stack developer with expertise in modern web technologies.",
+                requirements=["React", "Node.js", "Python", "PostgreSQL", "AWS", "Docker"]
+            )
+            
+            db.add(sample_job)
             db.commit()
+            db.refresh(sample_job)
+            
+            test_results["sample_job_created"] = {
+                "status": "success", 
+                "job_id": sample_job.id,
+                "title": sample_job.title,
+                "message": "Sample job created successfully"
+            }
+            
+        except Exception as job_error:
+            test_results["sample_job_created"] = {
+                "status": "error",
+                "message": f"Failed to create sample job: {str(job_error)}"
+            }
+            raise Exception(f"Job creation test failed: {str(job_error)}")
         
-        db.add(sample_job)
-        db.commit()
-        db.refresh(sample_job)
+        # Test 3: Create sample CV
+        try:
+            sample_cv_content = """
+John Doe
+Senior Software Engineer
+
+Experience:
+- 5 years developing web applications using React, Node.js, and Python
+- Experienced with PostgreSQL database design and optimization
+- Proficient in Git version control and Agile development
+- Strong problem-solving and communication skills
+
+Skills:
+React, JavaScript, Python, Node.js, PostgreSQL, Git, HTML, CSS
+            """.strip()
+            
+            sample_cv = CVFile(
+                filename="test_candidate.txt",
+                content=sample_cv_content,
+                file_type="txt",
+                file_size=len(sample_cv_content.encode('utf-8'))
+            )
+            
+            db.add(sample_cv)
+            db.commit()
+            db.refresh(sample_cv)
+            
+            test_results["sample_cv_created"] = {
+                "status": "success",
+                "cv_id": sample_cv.id,
+                "filename": sample_cv.filename,
+                "message": "Sample CV created successfully"
+            }
+            
+        except Exception as cv_error:
+            test_results["sample_cv_created"] = {
+                "status": "error",
+                "message": f"Failed to create sample CV: {str(cv_error)}"
+            }
+            raise Exception(f"CV creation test failed: {str(cv_error)}")
         
-        job_test = {
-            "status": "success", 
-            "job_id": sample_job.id,
-            "title": sample_job.title
-        }
+        # Test 4: AI Analysis
+        try:
+            if not ai_analyzer.is_configured:
+                test_results["analysis_test"] = {
+                    "status": "warning",
+                    "ai_configured": False,
+                    "message": "AI analyzer not configured - GEMINI_API_KEY missing",
+                    "score": 0,
+                    "matching_skills": [],
+                    "missing_skills": []
+                }
+            else:
+                cv_data = [{"id": sample_cv.id, "filename": sample_cv.filename, "content": sample_cv.content}]
+                analysis_result = await ai_analyzer.analyze_multiple_cvs(
+                    sample_job.description, sample_job.requirements, cv_data
+                )
+                
+                if analysis_result and len(analysis_result) > 0:
+                    result = analysis_result[0]
+                    test_results["analysis_test"] = {
+                        "status": "success",
+                        "ai_configured": True,
+                        "score": result.get('overall_score', 0),
+                        "matching_skills": result.get('matching_skills', []),
+                        "missing_skills": result.get('missing_skills', []),
+                        "message": "AI analysis completed successfully"
+                    }
+                else:
+                    test_results["analysis_test"] = {
+                        "status": "error",
+                        "ai_configured": True,
+                        "message": "AI analysis returned empty results",
+                        "score": 0,
+                        "matching_skills": [],
+                        "missing_skills": []
+                    }
+                    
+        except Exception as ai_error:
+            test_results["analysis_test"] = {
+                "status": "error",
+                "ai_configured": ai_analyzer.is_configured,
+                "message": f"AI analysis failed: {str(ai_error)}",
+                "score": 0,
+                "matching_skills": [],
+                "missing_skills": []
+            }
         
-        # Create sample CV
-        sample_cv_content = """
-        John Doe
-        Senior Software Engineer
+        # Determine overall status
+        if (test_results["database_test"]["status"] == "success" and 
+            test_results["sample_job_created"]["status"] == "success" and 
+            test_results["sample_cv_created"]["status"] == "success"):
+            
+            if test_results["analysis_test"]["status"] == "success":
+                test_results["status"] = "success"
+                test_results["message"] = "All systems operational. ResuMatch is ready for use."
+            elif test_results["analysis_test"]["status"] == "warning":
+                test_results["status"] = "warning"
+                test_results["message"] = "Core systems operational. AI analysis unavailable (API key required)."
+            else:
+                test_results["status"] = "warning"
+                test_results["message"] = "Core systems operational. AI analysis has issues."
+        else:
+            test_results["status"] = "error"
+            test_results["message"] = "Critical system components failed."
         
-        Experience:
-        - 5 years developing web applications using React, Node.js, and Python
-        - Experienced with PostgreSQL database design and optimization
-        - Proficient in Git version control and Agile development
-        - Strong problem-solving and communication skills
-        
-        Skills:
-        React, JavaScript, Python, Node.js, PostgreSQL, Git, HTML, CSS
-        """
-        
-        sample_cv = CVFile(
-            filename="test_candidate.txt",
-            content=sample_cv_content,
-            file_type="txt",
-            file_size=len(sample_cv_content.encode('utf-8'))
-        )
-        
-        db.add(sample_cv)
-        db.commit()
-        db.refresh(sample_cv)
-        
-        cv_test = {
-            "status": "success",
-            "cv_id": sample_cv.id,
-            "filename": sample_cv.filename
-        }
-        
-        # Test AI analysis
-        cv_data = [{"id": sample_cv.id, "filename": sample_cv.filename, "content": sample_cv.content}]
-        analysis_result = await ai_analyzer.analyze_multiple_cvs(
-            sample_job.description, sample_job.requirements, cv_data
-        )
-        
-        analysis_test = {
-            "status": "success",
-            "ai_configured": ai_analyzer.is_configured,
-            "score": analysis_result[0]['overall_score'] if analysis_result else 0,
-            "matching_skills": analysis_result[0]['matching_skills'] if analysis_result else [],
-            "missing_skills": analysis_result[0]['missing_skills'] if analysis_result else []
-        }
-        
-        return TestResponse(
-            status="success",
-            database_test=db_test,
-            sample_job_created=job_test,
-            sample_cv_created=cv_test,
-            analysis_test=analysis_test,
-            message="All systems operational. ResuMatch is ready for use."
-        )
+        return TestResponse(**test_results)
         
     except Exception as e:
-        return TestResponse(
-            status="error",
-            database_test={"status": "error", "message": str(e)},
-            sample_job_created={"status": "error"},
-            sample_cv_created={"status": "error"},
-            analysis_test={"status": "error"},
-            message=f"System test failed: {str(e)}"
-        )
+        test_results["status"] = "error"
+        test_results["message"] = f"System test failed: {str(e)}"
+        return TestResponse(**test_results)
 
 # Catch-all route for React Router
 @app.get("/{path:path}")
