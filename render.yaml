@@ -13,12 +13,12 @@ services:
       - key: DATABASE_URL
         value: sqlite:///./data/resumatch.db
       - key: ALLOWED_ORIGINS
-        value: https://resumatch.onrender.com
+        value: https://resumatch-qd38.onrender.com
     disk:
       name: data
       mountPath: /app/data
       sizeGB: 1
-    healthCheckPath: /
+    healthCheckPath: /api/test
     numInstances: 1
     buildFilter:
       paths:
