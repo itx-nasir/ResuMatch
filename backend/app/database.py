@@ -4,7 +4,8 @@ from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import os
 
-DATABASE_URL = "sqlite:///./resumatch.db"
+# Use environment variable for database URL or default to data directory
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/resumatch.db")
 
 engine = create_engine(
     DATABASE_URL, 
@@ -68,4 +69,9 @@ def get_db():
 
 # Create tables
 def create_tables():
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
+        raise
