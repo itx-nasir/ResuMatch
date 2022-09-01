@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://resumatch.onrender.com/api'
+  ? 'https://resumatch-qd38.onrender.com/api'
   : process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 const api = axios.create({
@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 seconds timeout
 });
 
 // Job Description API calls
