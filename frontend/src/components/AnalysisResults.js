@@ -136,46 +136,51 @@ const AnalysisResults = ({ results }) => {
               }}
               onClick={() => toggleExpanded(result.id || result.cv_id)}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  {result.error ? (
-                    <AlertTriangle size={20} color="#ef4444" />
-                  ) : index === 0 ? (
-                    <Award size={20} color="#f59e0b" />
-                  ) : null}
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>
-                    {result.cv_filename}
-                  </h3>
-                  <span className={`${getScoreColor(result.overall_score, result.error)}`} style={{ fontSize: '18px', fontWeight: '700' }}>
-                    {result.error ? 'Error' : `${Math.round(result.overall_score)}%`}
-                  </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    {result.error ? (
+                      <AlertTriangle size={20} color="#ef4444" />
+                    ) : index === 0 ? (
+                      <Award size={20} color="#f59e0b" />
+                    ) : null}
+                    <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>
+                      {result.cv_filename}
+                    </h3>
+                    <span className={`${getScoreColor(result.overall_score, result.error)}`} style={{ fontSize: '18px', fontWeight: '700' }}>
+                      {result.error ? 'Error' : `${Math.round(result.overall_score)}%`}
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <span className={`tag ${result.error ? 'tag-error' : getScoreColor(result.overall_score) === 'score-high' ? 'tag-success' : getScoreColor(result.overall_score) === 'score-medium' ? 'tag-warning' : 'tag-primary'}`}>
+                      {getScoreGrade(result.overall_score, result.error)}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                      Analyzed {formatDate(result.created_at)}
+                    </span>
+                  </div>
+                  
+                  <p style={{ 
+                    color: result.error ? '#ef4444' : '#6b7280', 
+                    margin: 0, 
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    hyphens: 'auto'
+                  }}>
+                    {result.summary}
+                  </p>
                 </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span className={`tag ${result.error ? 'tag-error' : getScoreColor(result.overall_score) === 'score-high' ? 'tag-success' : getScoreColor(result.overall_score) === 'score-medium' ? 'tag-warning' : 'tag-primary'}`}>
-                    {getScoreGrade(result.overall_score, result.error)}
-                  </span>
-                  <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                    Analyzed {formatDate(result.created_at)}
-                  </span>
+                <div style={{ marginLeft: '16px', flexShrink: 0 }}>
+                  {expandedResults.has(result.id || result.cv_id) ? (
+                    <ChevronUp size={20} color="#6b7280" />
+                  ) : (
+                    <ChevronDown size={20} color="#6b7280" />
+                  )}
                 </div>
-                
-                <p style={{ 
-                  color: result.error ? '#ef4444' : '#6b7280', 
-                  margin: 0, 
-                  fontSize: '14px',
-                  lineHeight: '1.5'
-                }}>
-                  {result.summary}
-                </p>
-              </div>
-              
-              <div style={{ marginLeft: '16px' }}>
-                {expandedResults.has(result.id || result.cv_id) ? (
-                  <ChevronUp size={20} color="#6b7280" />
-                ) : (
-                  <ChevronDown size={20} color="#6b7280" />
-                )}
               </div>
             </div>
 
@@ -250,8 +255,13 @@ const AnalysisResults = ({ results }) => {
                       borderRadius: '6px',
                       fontSize: '14px',
                       lineHeight: '1.6',
-                      color: '#374151'
-                    }}>
+                      color: '#374151',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      maxWidth: '100%'
+                    }}
+                    className="text-content">
                       {result.detailed_analysis}
                     </div>
                   </div>
