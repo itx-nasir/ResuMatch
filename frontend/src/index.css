@@ -12,6 +12,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
   line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Prevent aggressive text wrapping */
+p, div, span {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+}
+
+/* Ensure proper text flow for long text */
+.text-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 code {
