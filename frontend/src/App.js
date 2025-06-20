@@ -14,8 +14,6 @@ function App() {
   const [analysisResults, setAnalysisResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
-  const [jobsLoading, setJobsLoading] = useState(false);
-  const [cvsLoading, setCVsLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Load initial data
@@ -25,7 +23,6 @@ function App() {
   }, []);
 
   const loadJobs = async () => {
-    setJobsLoading(true);
     setError('');
     try {
       const data = await fetchJobs();
@@ -33,13 +30,10 @@ function App() {
     } catch (error) {
       setError('Failed to load job descriptions');
       // console.error('Failed to load jobs:', error);
-    } finally {
-      setJobsLoading(false);
     }
   };
 
   const loadCVs = async () => {
-    setCVsLoading(true);
     setError('');
     try {
       const cvsData = await fetchCVs();
@@ -47,8 +41,6 @@ function App() {
     } catch (error) {
       setError('Failed to load CV files');
       // console.error('Failed to load CVs:', error);
-    } finally {
-      setCVsLoading(false);
     }
   };
 
