@@ -14,6 +14,9 @@ function App() {
   const [analysisResults, setAnalysisResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [cvsLoading, setCVsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Load initial data
   useEffect(() => {
@@ -22,20 +25,30 @@ function App() {
   }, []);
 
   const loadJobs = async () => {
+    setJobsLoading(true);
+    setError('');
     try {
       const data = await fetchJobs();
       setJobs(data);
     } catch (error) {
-      console.error('Failed to load jobs:', error);
+      setError('Failed to load job descriptions');
+      // console.error('Failed to load jobs:', error);
+    } finally {
+      setJobsLoading(false);
     }
   };
 
   const loadCVs = async () => {
+    setCVsLoading(true);
+    setError('');
     try {
-      const data = await fetchCVs();
-      setCVs(data);
+      const cvsData = await fetchCVs();
+      setCVs(cvsData);
     } catch (error) {
-      console.error('Failed to load CVs:', error);
+      setError('Failed to load CV files');
+      // console.error('Failed to load CVs:', error);
+    } finally {
+      setCVsLoading(false);
     }
   };
 
@@ -72,6 +85,8 @@ function App() {
       )}
       
       <div className="container" style={{ marginTop: '20px' }}>
+        {error && <div className="error">{error}</div>}
+        
         <div className="two-column-layout">
           {/* Left Column - Job Management */}
           <div>

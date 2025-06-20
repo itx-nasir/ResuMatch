@@ -36,8 +36,8 @@ const SavedResults = ({ onClose }) => {
       setJobs(jobsData);
       setAnalyses(analysesData);
     } catch (err) {
-      setError('Failed to load saved data');
-      console.error('Error loading data:', err);
+      setError('Failed to load saved analysis results');
+      // console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }

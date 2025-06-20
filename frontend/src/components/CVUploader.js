@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, Trash2, Play, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Play, AlertCircle } from 'lucide-react';
 import { uploadCVs, analyzeCVs } from '../services/api';
 
 const CVUploader = ({
