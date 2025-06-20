@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+// Fixed: Removed unused Trash2 import to resolve ESLint error
 import { Upload, FileText, Play, AlertCircle } from 'lucide-react';
 import { uploadCVs, analyzeCVs } from '../services/api';
 
